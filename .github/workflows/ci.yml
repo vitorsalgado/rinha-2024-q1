@@ -10,6 +10,15 @@ on:
       - '*.md'
   pull_request:
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+env:
+  GATLING_VERSION: 3.10.3
+  RINHA_DIR: rinha-de-backend-2024-q1
+
 jobs:
   build:
     name: build
@@ -31,3 +40,28 @@ jobs:
 
       - name: test
         run: make test
+
+  load-test:
+    name: load-test
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: running everything
+        run: make up
+
+      - name: test
+        run: |
+          git clone --depth 1 --single-branch --quiet -b main https://github.com/zanfranceschi/rinha-de-backend-2024-q1.git
+          wget -P $RINHA_DIR https://repo1.maven.org/maven2/io/gatling/highcharts/gatling-charts-highcharts-bundle/$GATLING_VERSION/gatling-charts-highcharts-bundle-$GATLING_VERSION-bundle.zip
+          unzip -d $RINHA_DIR rinha-de-backend-2024-q1/gatling-charts-highcharts-bundle-$GATLING_VERSION-bundle.zip
+          ./bin/executar-teste-local
+
+          echo GATLING_REPORT=$(ls rinha-de-backend-2024-q1/load-test/user-files/results | sort | head -n 1) >> $GITHUB_ENV
+          
+      - name: upload test results
+        uses: actions/upload-pages-artifact@v3
+        with: 
+          path: rinha-de-backend-2024-q1/load-test/user-files/results/${{ env.GATLING_REPORT }}

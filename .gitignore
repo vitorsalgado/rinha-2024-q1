@@ -21,4 +21,8 @@
 go.work
 
 # project
-out
+rinha-de-backend-2024-q1
+out/
+.local/
+
+.env
