@@ -40,9 +40,17 @@ func main() {
 		return
 	}
 
+	// TODO: change to dynamic setup
+	cache := &Cache{}
+	cache.put("1", struct{}{})
+	cache.put("2", struct{}{})
+	cache.put("3", struct{}{})
+	cache.put("4", struct{}{})
+	cache.put("5", struct{}{})
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("pong")) })
-	mux.Handle("POST /clientes/{id}/transacoes", &HandlerTransacao{logger, pool})
+	mux.Handle("POST /clientes/{id}/transacoes", &HandlerTransacao{logger, pool, cache})
 
 	server := &http.Server{Handler: mux, Addr: ":8080", ReadTimeout: conf.SrvTimeout, WriteTimeout: conf.SrvTimeout}
 

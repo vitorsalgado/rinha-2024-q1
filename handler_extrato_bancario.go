@@ -5,18 +5,18 @@ import (
 	"net/http"
 )
 
-type Statement struct {
-	Balance          StatementBalance `json:"saldo"`
-	LastTransactions []Transacao      `json:"ultimas_transacoes"`
+type Extrato struct {
+	Saldo             ExtratoSaldo `json:"saldo"`
+	UltimasTransacoes []Transacao  `json:"ultimas_transacoes"`
 }
 
-type StatementBalance struct {
+type ExtratoSaldo struct {
 	Total int    `json:"total,omitempty"`
 	Date  string `json:"data_extrato,omitempty"`
 	Limit int    `json:"limite,omitempty"`
 }
 
-type StatementTransaction struct {
+type ExtratoTransacao struct {
 	Type        string `json:"tipo,omitempty"`
 	Value       int    `json:"valor,omitempty"`
 	Description string `json:"descricao,omitempty"`
@@ -33,6 +33,6 @@ func BankStatementHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("content-type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 
-	tr := Statement{}
+	tr := Extrato{}
 	json.NewEncoder(w).Encode(&tr)
 }

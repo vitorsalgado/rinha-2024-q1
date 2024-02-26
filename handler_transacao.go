@@ -40,12 +40,18 @@ type Resumo struct {
 type HandlerTransacao struct {
 	logger *slog.Logger
 	pool   *pgxpool.Pool
+	cache  *Cache
 }
 
 func (h *HandlerTransacao) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	clienteid := r.PathValue("id")
 	if len(clienteid) == 0 {
 		http.Error(w, "identificador de cliente nao informado", http.StatusUnprocessableEntity)
+		return
+	}
+
+	if !h.cache.has(clienteid) {
+		http.Error(w, "cliente nao encontrado", http.StatusNotFound)
 		return
 	}
 
