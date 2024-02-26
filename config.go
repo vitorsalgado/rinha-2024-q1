@@ -1,19 +1,22 @@
-package config
+package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"time"
 )
 
 const (
-	EnvSrvAddr    = "SRV_ADDR"
-	EnvSrvTimeout = "SRV_TIMEOUT"
+	EnvSrvAddr      = "SRV_ADDR"
+	EnvSrvTimeout   = "SRV_TIMEOUT"
+	EnvDBConnString = "DB_CONN_STRING"
 )
 
 type Config struct {
-	Addr       string
-	SrvTimeout time.Duration
+	Addr         string
+	SrvTimeout   time.Duration
+	DBConnString string
 }
 
 func Parse() (Config, error) {
@@ -24,8 +27,13 @@ func Parse() (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
-
 	config.SrvTimeout = srvTimeout
+
+	dbConnStr := envStr(EnvDBConnString, "")
+	if len(dbConnStr) == 0 {
+		return Config{}, errors.New("database connection string must not be empty")
+	}
+	config.DBConnString = dbConnStr
 
 	return config, nil
 }

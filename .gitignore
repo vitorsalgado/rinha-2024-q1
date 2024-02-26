@@ -21,8 +21,11 @@
 go.work
 
 # project
+.local/
+.vscode/
+.idea/
+
 rinha-de-backend-2024-q1
 out/
-.local/
 
 .env
