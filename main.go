@@ -51,6 +51,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("pong")) })
 	mux.Handle("POST /clientes/{id}/transacoes", &HandlerTransacao{logger, pool, cache})
+	mux.Handle("GET /clientes/{id}/extrato", &HandlerExtrato{logger, pool, cache})
 
 	server := &http.Server{Handler: mux, Addr: ":8080", ReadTimeout: conf.SrvTimeout, WriteTimeout: conf.SrvTimeout}
 
@@ -70,7 +71,9 @@ func main() {
 
 	logger.Info("server addr :8080")
 
-	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+	if err := server.ListenAndServe(); err != nil &&
+		!errors.Is(err, http.ErrServerClosed) &&
+		!errors.Is(err, context.Canceled) {
 		logger.Error("error during server close",
 			slog.String("error", err.Error()))
 	}
