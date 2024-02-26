@@ -1,0 +1,8 @@
+.local/
+.vscode/
+.idea/
+
+bin/
+rinha-de-backend-2024-q1/
+
+.env

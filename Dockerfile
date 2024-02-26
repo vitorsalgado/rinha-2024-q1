@@ -1,8 +1,10 @@
 FROM golang:1.22 as builder
-WORKDIR /api
-COPY go.mod go.sum Makefile ./
-RUN make deps
+WORKDIR /go/src/app
+COPY go.mod go.sum ./
+RUN go mod download
 COPY . .
-RUN make build
-CMD ["./out/api"]
+RUN CGO_ENABLED=0 go build -ldflags="-w -s" -o /go/bin/app
 
+FROM gcr.io/distroless/static-debian11
+COPY --from=builder /go/bin/app /
+CMD ["/app"]

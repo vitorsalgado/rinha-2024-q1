@@ -14,17 +14,25 @@ import (
 	"github.com/joho/godotenv"
 )
 
+//go:generate ./out/easyjson internal/mod/transacao.go internal/mod/extrato_bancario.go
+
 func main() {
 	godotenv.Load()
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+
+	defer func() {
+		if err := recover(); err != nil {
+			logger.Error("panic", slog.Any("panic", err))
+		}
+	}()
 
 	conf, err := Parse()
 	if err != nil {
 		logger.Error("error parsing application config", slog.Any("error", err))
 	}
 
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-	defer cancel()
+	exit := make(chan os.Signal, 1)
+	signal.Notify(exit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	poolConf, err := pgxpool.ParseConfig(conf.DBConnString)
 	if err != nil {
@@ -33,7 +41,7 @@ func main() {
 		return
 	}
 
-	pool, err := pgxpool.NewWithConfig(ctx, poolConf)
+	pool, err := pgxpool.NewWithConfig(context.Background(), poolConf)
 	if err != nil {
 		logger.Error("error creating postgresql connection pool", slog.Any("error", err))
 		os.Exit(1)
@@ -41,7 +49,7 @@ func main() {
 	}
 
 	// TODO: change to dynamic setup
-	cache := &Cache{}
+	cache := &Cache{make(map[string]struct{}, 5)}
 	cache.put("1", struct{}{})
 	cache.put("2", struct{}{})
 	cache.put("3", struct{}{})
@@ -56,10 +64,9 @@ func main() {
 	server := &http.Server{Handler: mux, Addr: ":8080", ReadTimeout: conf.SrvTimeout, WriteTimeout: conf.SrvTimeout}
 
 	go func() {
-		<-ctx.Done()
-		defer cancel()
+		<-exit
 
-		c, fn := context.WithTimeout(ctx, 5*time.Second)
+		c, fn := context.WithTimeout(context.Background(), 2*time.Second)
 		defer fn()
 
 		err := server.Shutdown(c)
@@ -71,10 +78,7 @@ func main() {
 
 	logger.Info("server addr :8080")
 
-	if err := server.ListenAndServe(); err != nil &&
-		!errors.Is(err, http.ErrServerClosed) &&
-		!errors.Is(err, context.Canceled) {
-		logger.Error("error during server close",
-			slog.String("error", err.Error()))
+	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		logger.Error("shutdown", slog.String("error", err.Error()))
 	}
 }

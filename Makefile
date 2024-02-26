@@ -1,6 +1,9 @@
 .ONESHELL:
 .DEFAULT_GOAL := help
 
+RINHA_GATLING_VERSION := 3.10.3
+RINHA_DIR := rinha-de-backend-2024-q1
+
 # allow user specific optional overrides
 -include Makefile.overrides
 
@@ -24,7 +27,11 @@ rm: ## remove everything
 
 .PHONY: build
 build: ## build and generate api binary
-	@go build -o out/api ./...
+	@go build -o out/api ./*.go
+
+.PHONY: deps
+deps: ## download dependencies
+	@go mod download
 
 .PHONY: run
 run: ## run api locally
@@ -34,10 +41,20 @@ run: ## run api locally
 test: ## run local tests
 	@go test ./cmd/... -v -race
 
-.PHONY: deps
-deps: ## download dependencies
-	@go mod download
+.PHONY: rinha-prepare
+rinha-prepare-test:
+	@git clone --depth 1 --single-branch -b main https://github.com/zanfranceschi/rinha-de-backend-2024-q1.git
+	@wget -P $$RINHA_DIR https://repo1.maven.org/maven2/io/gatling/highcharts/gatling-charts-highcharts-bundle/$$RINHA_GATLING_VERSION/gatling-charts-highcharts-bundle-$$RINHA_GATLING_VERSION-bundle.zip
+	@unzip -d $$RINHA_DIR $$RINHA_DIR/gatling-charts-highcharts-bundle-$$RINHA_GATLING_VERSION-bundle.zip
+
+.PHONY: rinha-test	
+rinha-test:
+	./bin/executar-teste-local
 
 .PHONY: dev-db
 dev-db: ## run dev env
 	@docker-compose -f ./deployments/docker-compose-db.yml up --force-recreate --build
+
+.PHONY: init
+init:
+	make -C tools

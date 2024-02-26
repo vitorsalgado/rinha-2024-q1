@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/vitorsalgado/rinha-backend-2024-q1-go/internal/mod"
 )
 
 type FnReturnCode int
@@ -24,19 +25,7 @@ func (c FnReturnCode) String() string {
 	}
 }
 
-type Transacao struct {
-	Descricao string `json:"descricao"`
-	Tipo      string `json:"tipo"`
-	Valor     int    `json:"valor"`
-}
-
-func (t *Transacao) isCredit() bool { return t.Tipo == "c" }
-
-type Resumo struct {
-	Limite int `json:"limite"`
-	Saldo  int `json:"saldo"`
-}
-
+//easyjson:skip
 type HandlerTransacao struct {
 	logger *slog.Logger
 	pool   *pgxpool.Pool
@@ -55,35 +44,27 @@ func (h *HandlerTransacao) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var mod Transacao
-	err := json.NewDecoder(r.Body).Decode(&mod)
+	var tr mod.Transacao
+	err := json.NewDecoder(r.Body).Decode(&tr)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		return
 	}
 
-	if !h.validate(&mod, w) {
-		return
-	}
-
-	ctx := r.Context()
-	conn, err := h.pool.Acquire(ctx)
-	if err != nil {
-		http.Error(w, "erro ao obter uma conexao com o banco de dados.", http.StatusInternalServerError)
-		h.logger.Error(err.Error())
+	if !h.validate(&tr, w) {
 		return
 	}
 
 	operation := ""
-	if mod.isCredit() {
+	if tr.IsCredit() {
 		operation = "SELECT * FROM creditar($1, $2, $3)"
 	} else {
 		operation = "SELECT * FROM debitar($1, $2, $3)"
 	}
 
-	row := conn.QueryRow(ctx, operation, clienteid, mod.Descricao, mod.Valor)
+	row := h.pool.QueryRow(r.Context(), operation, clienteid, tr.Descricao, tr.Valor)
 	code := FnReturnCode(0)
-	result := Resumo{}
+	result := mod.Resumo{}
 	if err := row.Scan(&result.Limite, &result.Saldo, &code); err != nil {
 		http.Error(w, "erro ao executar operacao", http.StatusInternalServerError)
 		h.logger.Error(err.Error())
@@ -100,19 +81,19 @@ func (h *HandlerTransacao) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *HandlerTransacao) validate(mod *Transacao, w http.ResponseWriter) bool {
-	if len(mod.Descricao) == 0 ||
-		len(mod.Descricao) > 10 {
+func (h *HandlerTransacao) validate(tr *mod.Transacao, w http.ResponseWriter) bool {
+	if len(tr.Descricao) == 0 ||
+		len(tr.Descricao) > 10 {
 		http.Error(w, "descricao pode conter ate 10 caracteres", http.StatusUnprocessableEntity)
 		return false
 	}
 
-	if mod.Valor <= 0 {
+	if tr.Valor <= 0 {
 		http.Error(w, "valor da transacao precisa ser maior que 0", http.StatusUnprocessableEntity)
 		return false
 	}
 
-	if !(mod.Tipo == "c" || mod.Tipo == "d") {
+	if !(tr.Tipo == "c" || tr.Tipo == "d") {
 		http.Error(w, "tipo da transacao precisar ser: c ou d", http.StatusUnprocessableEntity)
 		return false
 	}

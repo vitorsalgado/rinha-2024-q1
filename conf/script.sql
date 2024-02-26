@@ -13,17 +13,13 @@ CREATE UNLOGGED TABLE transacoes (
     descricao VARCHAR(10) NOT NULL,
     tipo CHAR(1) NOT NULL,
     valor INT NOT NULL,
-    realizado_em TIMESTAMP NOT NULL DEFAULT now(),
-
-    CONSTRAINT fk_transacoes_saldos
-        FOREIGN KEY (cliente_id)
-        REFERENCES saldos(id)
+    realizado_em TIMESTAMP NOT NULL DEFAULT now()
 );
 
 -- indexes
 
 CREATE INDEX idx_saldos_cliente_id ON saldos (cliente_id);
-CREATE INDEX idx_transacaos_cliente_id ON transacoes (cliente_id);
+CREATE INDEX idx_transacaos_cliente_id ON transacoes (cliente_id DESC);
 
 -- functions
 
@@ -48,7 +44,7 @@ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION debitar(fn_cliente_id INT, fn_descricao VARCHAR(10), fn_valor INT)
 RETURNS TABLE (fn_res_limite INT, fn_res_saldo_final INT, fn_res_code INT)
 AS $$
-DECLARE v_saldo INT; v_limite INT; v_res_code INT DEFAULT 0;
+DECLARE v_saldo INT; v_limite INT;
 BEGIN
 	PERFORM pg_advisory_xact_lock(fn_cliente_id);
 
@@ -61,17 +57,15 @@ BEGIN
         INSERT INTO transacoes (cliente_id, descricao, tipo, valor) 
         VALUES(fn_cliente_id, fn_descricao, 'd', fn_valor);
 		
-		UPDATE saldos
+	RETURN QUERY
+        UPDATE saldos
 		SET saldo = saldo - fn_valor
-		WHERE cliente_id = fn_cliente_id;
-
-        v_res_code := 1;
+		WHERE cliente_id = fn_cliente_id
+        RETURNING limite, saldo, 1;
+    ELSE
+        RETURN QUERY
+            SELECT v_limite, v_saldo, 2;
 	END IF;
-
-    RETURN QUERY
-        SELECT limite, saldo, v_res_code
-        FROM saldos
-        WHERE cliente_id = fn_cliente_id;
 END;
 $$
 LANGUAGE plpgsql;
