@@ -28,7 +28,7 @@ CREATE INDEX idx_transacaos_cliente_id ON transacoes (cliente_id);
 -- functions
 
 CREATE OR REPLACE FUNCTION creditar(fn_cliente_id INT, fn_descricao VARCHAR(10), fn_valor INT)
-RETURNS TABLE (fn_res_limite INT, fn_res_saldo_final INT)
+RETURNS TABLE (fn_res_limite INT, fn_res_saldo_final INT, fn_res_code INT)
 AS $$
 BEGIN
 	PERFORM pg_advisory_xact_lock(fn_cliente_id);
@@ -40,7 +40,7 @@ BEGIN
         UPDATE saldos
         SET saldo = saldo + fn_valor
         WHERE cliente_id = fn_cliente_id
-        RETURNING limite, saldo;
+        RETURNING limite, saldo, 1;
 END;
 $$
 LANGUAGE plpgsql;
@@ -48,7 +48,7 @@ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION debitar(fn_cliente_id INT, fn_descricao VARCHAR(10), fn_valor INT)
 RETURNS TABLE (fn_res_limite INT, fn_res_saldo_final INT, fn_res_code INT)
 AS $$
-DECLARE v_saldo INT; v_limite INT; v_res_code INT DEFAULT 1;
+DECLARE v_saldo INT; v_limite INT; v_res_code INT DEFAULT 0;
 BEGIN
 	PERFORM pg_advisory_xact_lock(fn_cliente_id);
 
@@ -65,7 +65,7 @@ BEGIN
 		SET saldo = saldo - fn_valor
 		WHERE cliente_id = fn_cliente_id;
 
-        v_res_code := 0;
+        v_res_code := 1;
 	END IF;
 
     RETURN QUERY

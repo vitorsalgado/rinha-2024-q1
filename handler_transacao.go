@@ -2,10 +2,27 @@ package main
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+type FnReturnCode int
+
+const (
+	FnReturnCodeSuccess FnReturnCode = iota + 1
+	FnReturnCodeInsufficientBalance
+)
+
+func (c FnReturnCode) String() string {
+	switch c {
+	case FnReturnCodeInsufficientBalance:
+		return "saldo insuficiente"
+	default:
+		return "estado invalido ou desconhecido"
+	}
+}
 
 type Transacao struct {
 	Descricao string `json:"descricao"`
@@ -13,7 +30,6 @@ type Transacao struct {
 	Valor     int    `json:"valor"`
 }
 
-func (t *Transacao) isDebit() bool  { return t.Tipo == "d" }
 func (t *Transacao) isCredit() bool { return t.Tipo == "c" }
 
 type Resumo struct {
@@ -22,88 +38,78 @@ type Resumo struct {
 }
 
 type HandlerTransacao struct {
-	pool *pgxpool.Pool
+	logger *slog.Logger
+	pool   *pgxpool.Pool
 }
 
 func (h *HandlerTransacao) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	clienteid := r.PathValue("id")
 	if len(clienteid) == 0 {
-		http.Error(w, "customer id must be present", http.StatusUnprocessableEntity)
+		http.Error(w, "identificador de cliente nao informado", http.StatusUnprocessableEntity)
 		return
 	}
 
-	var transation Transacao
-	err := json.NewDecoder(r.Body).Decode(&transation)
+	var mod Transacao
+	err := json.NewDecoder(r.Body).Decode(&mod)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		return
 	}
 
-	if len(transation.Descricao) == 0 ||
-		len(transation.Descricao) > 10 {
-		http.Error(w, "description must have max 10 chars", http.StatusUnprocessableEntity)
-		return
-	}
-
-	if transation.Valor <= 0 {
-		http.Error(w, "value must greater than 0", http.StatusUnprocessableEntity)
+	if !h.validate(&mod, w) {
 		return
 	}
 
 	ctx := r.Context()
 	conn, err := h.pool.Acquire(ctx)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "erro ao obter uma conexao com o banco de dados.", http.StatusInternalServerError)
+		h.logger.Error(err.Error())
 		return
 	}
 
-	// credito
-	if transation.Tipo == "c" {
-		row := conn.QueryRow(ctx,
-			"SELECT * FROM creditar($1, $2, $3)",
-			clienteid,
-			transation.Descricao,
-			transation.Valor,
-		)
+	operation := ""
+	if mod.isCredit() {
+		operation = "SELECT * FROM creditar($1, $2, $3)"
+	} else {
+		operation = "SELECT * FROM debitar($1, $2, $3)"
+	}
 
-		res := Resumo{}
-		if err := row.Scan(&res.Limite, &res.Saldo); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	row := conn.QueryRow(ctx, operation, clienteid, mod.Descricao, mod.Valor)
+	code := FnReturnCode(0)
+	result := Resumo{}
+	if err := row.Scan(&result.Limite, &result.Saldo, &code); err != nil {
+		http.Error(w, "erro ao executar operacao", http.StatusInternalServerError)
+		h.logger.Error(err.Error())
+		return
+	}
 
+	switch code {
+	case FnReturnCodeSuccess:
 		w.Header().Add("content-type", "application/json; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(&res)
-		return
+		json.NewEncoder(w).Encode(&result)
+	default:
+		http.Error(w, code.String(), http.StatusUnprocessableEntity)
+	}
+}
+
+func (h *HandlerTransacao) validate(mod *Transacao, w http.ResponseWriter) bool {
+	if len(mod.Descricao) == 0 ||
+		len(mod.Descricao) > 10 {
+		http.Error(w, "descricao pode conter ate 10 caracteres", http.StatusUnprocessableEntity)
+		return false
 	}
 
-	// debito
-	if transation.Tipo == "d" {
-		row := conn.QueryRow(ctx,
-			"SELECT * FROM debitar($1, $2, $3)",
-			clienteid,
-			transation.Descricao,
-			transation.Valor,
-		)
-
-		res := Resumo{}
-		code := 0
-		if err := row.Scan(&res.Limite, &res.Saldo, &code); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		if code == 0 {
-			w.Header().Add("content-type", "application/json; charset=utf-8")
-			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(&res)
-			return
-		}
-
-		http.Error(w, "saldo", http.StatusUnprocessableEntity)
-		return
+	if mod.Valor <= 0 {
+		http.Error(w, "valor da transacao precisa ser maior que 0", http.StatusUnprocessableEntity)
+		return false
 	}
 
-	http.Error(w, "not implemented", http.StatusNotImplemented)
+	if !(mod.Tipo == "c" || mod.Tipo == "d") {
+		http.Error(w, "tipo da transacao precisar ser: c ou d", http.StatusUnprocessableEntity)
+		return false
+	}
+
+	return true
 }

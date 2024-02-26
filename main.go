@@ -42,7 +42,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("pong")) })
-	mux.Handle("POST /clientes/{id}/transacoes", &HandlerTransacao{pool})
+	mux.Handle("POST /clientes/{id}/transacoes", &HandlerTransacao{logger, pool})
 
 	server := &http.Server{Handler: mux, Addr: ":8080", ReadTimeout: conf.SrvTimeout, WriteTimeout: conf.SrvTimeout}
 
