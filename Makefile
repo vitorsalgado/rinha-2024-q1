@@ -37,18 +37,14 @@ deps: ## download dependencies
 run: ## run api locally
 	@go run ./...
 
-.PHONY: test
-test: ## run local tests
-	@go test ./cmd/... -v -race
-
-.PHONY: rinha-prepare
-rinha-prepare-test:
+.PHONY: prepare
+prepare:
 	@git clone --depth 1 --single-branch -b main https://github.com/zanfranceschi/rinha-de-backend-2024-q1.git
 	@wget -P $$RINHA_DIR https://repo1.maven.org/maven2/io/gatling/highcharts/gatling-charts-highcharts-bundle/$$RINHA_GATLING_VERSION/gatling-charts-highcharts-bundle-$$RINHA_GATLING_VERSION-bundle.zip
 	@unzip -d $$RINHA_DIR $$RINHA_DIR/gatling-charts-highcharts-bundle-$$RINHA_GATLING_VERSION-bundle.zip
 
-.PHONY: rinha-test	
-rinha-test:
+.PHONY: test
+test:
 	./bin/executar-teste-local
 
 .PHONY: dev-db

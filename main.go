@@ -61,7 +61,7 @@ func main() {
 	mux.Handle("POST /clientes/{id}/transacoes", &HandlerTransacao{logger, pool, cache})
 	mux.Handle("GET /clientes/{id}/extrato", &HandlerExtrato{logger, pool, cache})
 
-	server := &http.Server{Handler: mux, Addr: ":8080", ReadTimeout: conf.SrvTimeout, WriteTimeout: conf.SrvTimeout}
+	server := &http.Server{Handler: mux, Addr: conf.Addr, ReadTimeout: conf.SrvTimeout, WriteTimeout: conf.SrvTimeout}
 
 	go func() {
 		<-exit

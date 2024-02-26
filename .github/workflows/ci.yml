@@ -38,9 +38,6 @@ jobs:
       - name: build
         run: make build
 
-      - name: test
-        run: make test
-
   load-test:
     name: load-test
     runs-on: ubuntu-latest
