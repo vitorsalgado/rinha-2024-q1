@@ -69,21 +69,6 @@ services:
           cpus: "0.13"
           memory: "140MB"
 
-  redis:
-    image: redis
-    container_name: redis
-    init: true
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-    environment:
-      - ALLOW_EMPTY_PASSWORD=yes
-    deploy:
-      resources:
-        limits:
-          cpus: "0.13"
-          memory: "50MB"
-
 # O uso do modo `bridge` deve ser adequado à carga que será usada no teste.
 # A edição anterior se beneficiou do modo host pois o volume de requisições
 # era relativamente alto e a virtualização da rede se tornou um gargalo, mas
