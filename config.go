@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	EnvSrvAddr      = "SRV_ADDR"
+	EnvSrvAddr      = "PORT"
 	EnvSrvTimeout   = "SRV_TIMEOUT"
 	EnvDBConnString = "DB_CONN_STRING"
 )
@@ -23,7 +23,7 @@ func Parse() (Config, error) {
 	config := Config{}
 	config.Addr = envStr(EnvSrvAddr, ":8080")
 
-	srvTimeout, err := envDur(EnvSrvTimeout, 15*time.Second)
+	srvTimeout, err := envDur(EnvSrvTimeout, 5*time.Second)
 	if err != nil {
 		return Config{}, err
 	}

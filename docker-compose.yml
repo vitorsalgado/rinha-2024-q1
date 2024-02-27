@@ -7,16 +7,19 @@ services:
     container_name: api01
     hostname: api01
     environment:
-      - DB_CONN_STRING=postgresql://admin:123@db:5432/rinha?sslmode=disable&pool_max_conns=300&pool_min_conns=15
-      - GOMAXPROCS=1
-      - GOMEMLIMIT=40MiB
+      - DB_CONN_STRING=user=admin password=123 dbname=rinha host=/var/run/postgresql sslmode=disable pool_min_conns=50 pool_max_conns=210
+      #- GOMAXPROCS=1
+      #- GOMEMLIMIT=21MiB
+      #- GOGC=off
+    volumes:
+      - pgsql_socket:/var/run/postgresql
     depends_on:
       - db
     deploy:
       resources:
         limits:
-          cpus: "0.3"
-          memory: "50MB"
+          cpus: "0.2"
+          memory: "25MB"
 
   api02:
     <<: *api
@@ -35,8 +38,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.4"
-          memory: "100MB"
+          cpus: "0.2"
+          memory: "50MB"
 
   db:
     image: postgres:latest
@@ -47,16 +50,20 @@ services:
       - POSTGRES_DB=rinha
     ports:
       - "5432:5432"
-    command: postgres -c max_connections=300 -c checkpoint_timeout=600 -c synchronous_commit=0 -c fsync=0 -c full_page_writes=0
+    command: postgres -c max_connections=450 -c checkpoint_timeout=600 -c synchronous_commit=0 -c fsync=0 -c full_page_writes=0
     volumes:
       - ./conf/script.sql:/docker-entrypoint-initdb.d/script.sql
+      - pgsql_socket:/var/run/postgresql
     deploy:
       resources:
         limits:
-          cpus: "0.5"
-          memory: "350MB"
+          cpus: "0.9"
+          memory: "450MB"
 
 networks:
   default:
     driver: bridge
     name: rinha-nginx-2024q1
+
+volumes:
+  pgsql_socket:

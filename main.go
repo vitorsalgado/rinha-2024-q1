@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -19,13 +20,6 @@ import (
 func main() {
 	godotenv.Load()
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-
-	defer func() {
-		if err := recover(); err != nil {
-			logger.Error("panic", slog.Any("panic", err))
-		}
-	}()
-
 	conf, err := Parse()
 	if err != nil {
 		logger.Error("error parsing application config", slog.Any("error", err))
@@ -34,7 +28,8 @@ func main() {
 	exit := make(chan os.Signal, 1)
 	signal.Notify(exit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
-	poolConf, err := pgxpool.ParseConfig(conf.DBConnString)
+	connStr := fmt.Sprintf("user=%s password=%s dbname=%s host=%s sslmode=disable", "admin", "123", "rinha", "/var/run/postgresql")
+	poolConf, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
 		logger.Error("error parsing postgresql connection string", slog.Any("error", err))
 		os.Exit(1)
@@ -48,18 +43,10 @@ func main() {
 		return
 	}
 
-	// TODO: change to dynamic setup
-	cache := &Cache{make(map[string]struct{}, 5)}
-	cache.put("1", struct{}{})
-	cache.put("2", struct{}{})
-	cache.put("3", struct{}{})
-	cache.put("4", struct{}{})
-	cache.put("5", struct{}{})
-
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("pong")) })
-	mux.Handle("POST /clientes/{id}/transacoes", &HandlerTransacao{logger, pool, cache})
-	mux.Handle("GET /clientes/{id}/extrato", &HandlerExtrato{logger, pool, cache})
+	mux.Handle("POST /clientes/{id}/transacoes", &HandlerTransacao{pool: pool})
+	mux.Handle("GET /clientes/{id}/extrato", &HandlerExtrato{pool: pool})
 
 	server := &http.Server{Handler: mux, Addr: conf.Addr, ReadTimeout: conf.SrvTimeout, WriteTimeout: conf.SrvTimeout}
 
@@ -76,7 +63,7 @@ func main() {
 		}
 	}()
 
-	logger.Info("server addr :8080")
+	logger.Info("server will listen to addr: " + conf.Addr)
 
 	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		logger.Error("shutdown", slog.String("error", err.Error()))

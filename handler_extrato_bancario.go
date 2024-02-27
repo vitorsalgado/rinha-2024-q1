@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"log/slog"
 	"net/http"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -10,9 +9,8 @@ import (
 )
 
 type HandlerExtrato struct {
-	logger *slog.Logger
-	pool   *pgxpool.Pool
-	cache  *Cache
+	pool *pgxpool.Pool
+	c    [10]mod.ExtratoTransacao
 }
 
 func (h *HandlerExtrato) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -22,29 +20,23 @@ func (h *HandlerExtrato) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !h.cache.has(clienteid) {
-		http.Error(w, "cliente nao encontrado", http.StatusNotFound)
-		return
-	}
-
 	const cmd = `
-	(select s.saldo as valor, s.limite, '' as descricao, '' as tipo, now() as data
-	from saldos s
-	where s.cliente_id = $1)
+(select s.saldo as valor, s.limite, '' as descricao, '' as tipo, now() as data
+from saldos s
+where s.cliente_id = $1)
 	
-	union all
+union all
 	
-	(select t.valor, 0, t.descricao, t.tipo, t.realizado_em
-	from transacoes t
-	where cliente_id = $1
-	order by t.id desc
-	limit 10)	
-	`
+(select t.valor, 0, t.descricao, t.tipo, t.realizado_em
+from transacoes t
+where cliente_id = $1
+order by t.id desc
+limit 10)
+`
 
 	rows, err := h.pool.Query(r.Context(), cmd, clienteid)
 	if err != nil {
 		http.Error(w, "erro ao executar operacao", http.StatusInternalServerError)
-		h.logger.Error(err.Error())
 		return
 	}
 	defer rows.Close()
@@ -54,22 +46,19 @@ func (h *HandlerExtrato) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	saldo := mod.ExtratoSaldo{}
-	err = rows.Scan(&saldo.Total, &saldo.Limite, nil, nil, &saldo.DataExtrato)
+	extrato := mod.Extrato{}
+	err = rows.Scan(&extrato.Saldo.Total, &extrato.Saldo.Limite, nil, nil, &extrato.Saldo.DataExtrato)
 	if err != nil {
 		http.Error(w, "erro ao obter informacao de saldo", http.StatusInternalServerError)
-		h.logger.Error(err.Error())
 		return
 	}
 
-	transacoes := make([]mod.ExtratoTransacao, 0, 10)
+	extrato.UltimasTransacoes = h.c[:0]
 	for rows.Next() {
 		tr := mod.ExtratoTransacao{}
 		rows.Scan(&tr.Valor, nil, &tr.Descricao, &tr.Tipo, &tr.RealizadaEm)
-		transacoes = append(transacoes, tr)
+		extrato.UltimasTransacoes = append(extrato.UltimasTransacoes, tr)
 	}
-
-	extrato := mod.Extrato{Saldo: saldo, UltimasTransacoes: transacoes}
 
 	w.Header().Add("content-type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)

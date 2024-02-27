@@ -1,8 +1,7 @@
 -- tables
 
 CREATE UNLOGGED TABLE saldos (
-    id SERIAL PRIMARY KEY,
-    cliente_id INTEGER NOT NULL,
+    cliente_id INTEGER PRIMARY KEY NOT NULL,
     limite INT NOT NULL,
     saldo INT NOT NULL
 );
@@ -18,15 +17,21 @@ CREATE UNLOGGED TABLE transacoes (
 
 -- indexes
 
-CREATE INDEX idx_saldos_cliente_id ON saldos (cliente_id);
 CREATE INDEX idx_transacaos_cliente_id ON transacoes (cliente_id DESC);
 
 -- functions
 
-CREATE OR REPLACE FUNCTION creditar(fn_cliente_id INT, fn_descricao VARCHAR(10), fn_valor INT)
+CREATE OR REPLACE FUNCTION fn_creditar(fn_cliente_id INT, fn_descricao VARCHAR(10), fn_valor INT)
 RETURNS TABLE (fn_res_limite INT, fn_res_saldo_final INT, fn_res_code INT)
 AS $$
+DECLARE v_count INT;
 BEGIN
+    SELECT COUNT(*) INTO v_count FROM saldos WHERE cliente_id = fn_cliente_id;
+    IF v_count = 0 THEN
+        RETURN QUERY
+            SELECT 0, 0, 3;
+    END IF;
+
 	PERFORM pg_advisory_xact_lock(fn_cliente_id);
 
 	INSERT INTO transacoes (cliente_id, descricao, tipo, valor) 
@@ -41,7 +46,7 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION debitar(fn_cliente_id INT, fn_descricao VARCHAR(10), fn_valor INT)
+CREATE OR REPLACE FUNCTION fn_debitar(fn_cliente_id INT, fn_descricao VARCHAR(10), fn_valor INT)
 RETURNS TABLE (fn_res_limite INT, fn_res_saldo_final INT, fn_res_code INT)
 AS $$
 DECLARE v_saldo INT; v_limite INT;

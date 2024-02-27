@@ -1,7 +1,7 @@
 .ONESHELL:
 .DEFAULT_GOAL := help
 
-RINHA_GATLING_VERSION := 3.10.3
+RINHA_GATLING_VERSION := 3.10.4
 RINHA_DIR := rinha-de-backend-2024-q1
 
 # allow user specific optional overrides
@@ -47,9 +47,13 @@ prepare:
 test:
 	./bin/executar-teste-local
 
-.PHONY: dev-db
-dev-db: ## run dev env
-	@docker-compose -f ./deployments/docker-compose-db.yml up --force-recreate --build
+.PHONY: up-dev
+up-dev: ## run dev env
+	@docker-compose -f ./docker-compose-db-only.yml up --force-recreate --build
+
+.PHONY: down-dev
+down-dev: ## stop dev env
+	@docker-compose -f ./docker-compose-db-only.yml down --volumes --remove-orphans
 
 .PHONY: init
 init:
