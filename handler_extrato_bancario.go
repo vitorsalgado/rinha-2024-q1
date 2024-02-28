@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/vitorsalgado/rinha-backend-2024-q1-go/internal/mod"
+	"github.com/vitorsalgado/rinha-2024-q1/internal/mod"
 )
 
 const (

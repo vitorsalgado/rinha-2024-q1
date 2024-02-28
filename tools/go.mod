@@ -1,4 +1,4 @@
-module github.com/vitorsalgado/rinha-backend-2024-q1-go/tools
+module github.com/vitorsalgado/rinha-2024-q1/tools
 
 go 1.22.0
 
