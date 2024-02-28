@@ -20,7 +20,7 @@ func Parse() (Config, error) {
 	config := Config{}
 	config.Addr = envStr(EnvAddr, ":8080")
 	config.SrvTimeout = 10 * time.Second
-	config.DBConnString = envStr(EnvDBConnString, "postgresql://admin:123@db:5432/rinha?sslmode=disable")
+	config.DBConnString = envStr(EnvDBConnString, "postgresql://rinha:rinha@db:5432/rinha?sslmode=disable")
 
 	return config, nil
 }

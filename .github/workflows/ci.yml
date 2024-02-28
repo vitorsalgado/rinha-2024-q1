@@ -45,11 +45,19 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
-      - name: build docker image and push
+      - name: docker login
         run: |
           echo ${{ secrets.DOCKER_ACCESS_TOKEN }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/rinha-2024-q1 .
-          docker push ${{ secrets.DOCKER_USERNAME }}/rinha-2024-q1
+
+      - name: publish api
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/rinha-2024q1-api .
+          docker push ${{ secrets.DOCKER_USERNAME }}/rinha-2024q1-api
+
+      - name: publish bouncer
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/rinha-2024q1-bouncer -f Dockerfile.bouncer .
+          docker push ${{ secrets.DOCKER_USERNAME }}/rinha-2024q1-bouncer
 
   load-test:
     name: load-test
