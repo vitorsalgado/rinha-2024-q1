@@ -38,14 +38,7 @@ func (h *HandlerTransacao) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	operation := ""
-	if tr.IsCredit() {
-		operation = "SELECT * FROM fn_creditar($1, $2, $3)"
-	} else {
-		operation = "SELECT * FROM fn_debitar($1, $2, $3)"
-	}
-
-	row := h.pool.QueryRow(r.Context(), operation, clienteid, tr.Descricao, tr.Valor)
+	row := h.pool.QueryRow(r.Context(), "SELECT * FROM fn_crebito($1, $2, $3, $4)", clienteid, tr.Descricao, tr.Tipo, tr.Valor)
 	code := FnReturnCode(0)
 	result := mod.Resumo{}
 	if err := row.Scan(&result.Limite, &result.Saldo, &code); err != nil {
