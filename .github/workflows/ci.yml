@@ -68,7 +68,7 @@ jobs:
       - name: java
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: "temurin"
           java-version: 17
 
       - name: running everything
@@ -82,8 +82,15 @@ jobs:
           ./bin/executar-teste-local
 
           echo GATLING_REPORT=$(ls $RINHA_DIR/load-test/user-files/results | sort | head -n 1) >> $GITHUB_ENV
-          
+
+      - name: Fix permissions
+        run: |
+          chmod -c -R +rX "_site/" | while read line; do
+            echo "::warning title=Invalid file permissions automatically fixed::$line"
+          done
+
       - name: upload test results
         uses: actions/upload-pages-artifact@v3
-        with: 
+        with:
           path: ${{ env.RINHA_DIR }}/load-test/user-files/results/${{ env.GATLING_REPORT }}
+          retention-days: 5
