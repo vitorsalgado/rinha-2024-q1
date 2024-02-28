@@ -8,6 +8,7 @@ services:
     hostname: api01
     environment:
       - DB_CONN_STRING=user=rinha password=rinha dbname=rinha host=/var/run/postgresql sslmode=disable pool_min_conns=10 pool_max_conns=10
+      - GOMAXPROCS=2
     volumes:
       - pgsql_socket:/var/run/postgresql
     depends_on:
