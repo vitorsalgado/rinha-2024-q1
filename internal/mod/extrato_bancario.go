@@ -8,12 +8,14 @@ type Extrato struct {
 	UltimasTransacoes []ExtratoTransacao `json:"ultimas_transacoes"`
 }
 
+//easyjson:json
 type ExtratoSaldo struct {
 	Total       int       `json:"total"`
 	DataExtrato time.Time `json:"data_extrato"`
 	Limite      int       `json:"limite"`
 }
 
+//easyjson:json
 type ExtratoTransacao struct {
 	Tipo        string    `json:"tipo"`
 	Valor       int       `json:"valor"`

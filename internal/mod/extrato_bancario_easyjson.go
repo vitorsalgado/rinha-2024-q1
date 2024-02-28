@@ -17,112 +17,7 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjsonCb346c17DecodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod(in *jlexer.Lexer, out *Extrato) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeFieldName(false)
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "saldo":
-			easyjsonCb346c17DecodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod1(in, &out.Saldo)
-		case "ultimas_transacoes":
-			if in.IsNull() {
-				in.Skip()
-				out.UltimasTransacoes = nil
-			} else {
-				in.Delim('[')
-				if out.UltimasTransacoes == nil {
-					if !in.IsDelim(']') {
-						out.UltimasTransacoes = make([]ExtratoTransacao, 0, 1)
-					} else {
-						out.UltimasTransacoes = []ExtratoTransacao{}
-					}
-				} else {
-					out.UltimasTransacoes = (out.UltimasTransacoes)[:0]
-				}
-				for !in.IsDelim(']') {
-					var v1 ExtratoTransacao
-					easyjsonCb346c17DecodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod2(in, &v1)
-					out.UltimasTransacoes = append(out.UltimasTransacoes, v1)
-					in.WantComma()
-				}
-				in.Delim(']')
-			}
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjsonCb346c17EncodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod(out *jwriter.Writer, in Extrato) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"saldo\":"
-		out.RawString(prefix[1:])
-		easyjsonCb346c17EncodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod1(out, in.Saldo)
-	}
-	{
-		const prefix string = ",\"ultimas_transacoes\":"
-		out.RawString(prefix)
-		if in.UltimasTransacoes == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
-			out.RawString("null")
-		} else {
-			out.RawByte('[')
-			for v2, v3 := range in.UltimasTransacoes {
-				if v2 > 0 {
-					out.RawByte(',')
-				}
-				easyjsonCb346c17EncodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod2(out, v3)
-			}
-			out.RawByte(']')
-		}
-	}
-	out.RawByte('}')
-}
-
-// MarshalJSON supports json.Marshaler interface
-func (v Extrato) MarshalJSON() ([]byte, error) {
-	w := jwriter.Writer{}
-	easyjsonCb346c17EncodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod(&w, v)
-	return w.Buffer.BuildBytes(), w.Error
-}
-
-// MarshalEasyJSON supports easyjson.Marshaler interface
-func (v Extrato) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonCb346c17EncodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod(w, v)
-}
-
-// UnmarshalJSON supports json.Unmarshaler interface
-func (v *Extrato) UnmarshalJSON(data []byte) error {
-	r := jlexer.Lexer{Data: data}
-	easyjsonCb346c17DecodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod(&r, v)
-	return r.Error()
-}
-
-// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *Extrato) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonCb346c17DecodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod(l, v)
-}
-func easyjsonCb346c17DecodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod2(in *jlexer.Lexer, out *ExtratoTransacao) {
+func easyjsonCb346c17DecodeGithubComVitorsalgadoRinha2024Q1InternalMod(in *jlexer.Lexer, out *ExtratoTransacao) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -161,7 +56,7 @@ func easyjsonCb346c17DecodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod2
 		in.Consumed()
 	}
 }
-func easyjsonCb346c17EncodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod2(out *jwriter.Writer, in ExtratoTransacao) {
+func easyjsonCb346c17EncodeGithubComVitorsalgadoRinha2024Q1InternalMod(out *jwriter.Writer, in ExtratoTransacao) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -187,7 +82,31 @@ func easyjsonCb346c17EncodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod2
 	}
 	out.RawByte('}')
 }
-func easyjsonCb346c17DecodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod1(in *jlexer.Lexer, out *ExtratoSaldo) {
+
+// MarshalJSON supports json.Marshaler interface
+func (v ExtratoTransacao) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjsonCb346c17EncodeGithubComVitorsalgadoRinha2024Q1InternalMod(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v ExtratoTransacao) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjsonCb346c17EncodeGithubComVitorsalgadoRinha2024Q1InternalMod(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *ExtratoTransacao) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjsonCb346c17DecodeGithubComVitorsalgadoRinha2024Q1InternalMod(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *ExtratoTransacao) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjsonCb346c17DecodeGithubComVitorsalgadoRinha2024Q1InternalMod(l, v)
+}
+func easyjsonCb346c17DecodeGithubComVitorsalgadoRinha2024Q1InternalMod1(in *jlexer.Lexer, out *ExtratoSaldo) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -224,7 +143,7 @@ func easyjsonCb346c17DecodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod1
 		in.Consumed()
 	}
 }
-func easyjsonCb346c17EncodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod1(out *jwriter.Writer, in ExtratoSaldo) {
+func easyjsonCb346c17EncodeGithubComVitorsalgadoRinha2024Q1InternalMod1(out *jwriter.Writer, in ExtratoSaldo) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -244,4 +163,133 @@ func easyjsonCb346c17EncodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod1
 		out.Int(int(in.Limite))
 	}
 	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v ExtratoSaldo) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjsonCb346c17EncodeGithubComVitorsalgadoRinha2024Q1InternalMod1(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v ExtratoSaldo) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjsonCb346c17EncodeGithubComVitorsalgadoRinha2024Q1InternalMod1(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *ExtratoSaldo) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjsonCb346c17DecodeGithubComVitorsalgadoRinha2024Q1InternalMod1(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *ExtratoSaldo) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjsonCb346c17DecodeGithubComVitorsalgadoRinha2024Q1InternalMod1(l, v)
+}
+func easyjsonCb346c17DecodeGithubComVitorsalgadoRinha2024Q1InternalMod2(in *jlexer.Lexer, out *Extrato) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "saldo":
+			(out.Saldo).UnmarshalEasyJSON(in)
+		case "ultimas_transacoes":
+			if in.IsNull() {
+				in.Skip()
+				out.UltimasTransacoes = nil
+			} else {
+				in.Delim('[')
+				if out.UltimasTransacoes == nil {
+					if !in.IsDelim(']') {
+						out.UltimasTransacoes = make([]ExtratoTransacao, 0, 1)
+					} else {
+						out.UltimasTransacoes = []ExtratoTransacao{}
+					}
+				} else {
+					out.UltimasTransacoes = (out.UltimasTransacoes)[:0]
+				}
+				for !in.IsDelim(']') {
+					var v1 ExtratoTransacao
+					(v1).UnmarshalEasyJSON(in)
+					out.UltimasTransacoes = append(out.UltimasTransacoes, v1)
+					in.WantComma()
+				}
+				in.Delim(']')
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjsonCb346c17EncodeGithubComVitorsalgadoRinha2024Q1InternalMod2(out *jwriter.Writer, in Extrato) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"saldo\":"
+		out.RawString(prefix[1:])
+		(in.Saldo).MarshalEasyJSON(out)
+	}
+	{
+		const prefix string = ",\"ultimas_transacoes\":"
+		out.RawString(prefix)
+		if in.UltimasTransacoes == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+			out.RawString("null")
+		} else {
+			out.RawByte('[')
+			for v2, v3 := range in.UltimasTransacoes {
+				if v2 > 0 {
+					out.RawByte(',')
+				}
+				(v3).MarshalEasyJSON(out)
+			}
+			out.RawByte(']')
+		}
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v Extrato) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjsonCb346c17EncodeGithubComVitorsalgadoRinha2024Q1InternalMod2(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v Extrato) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjsonCb346c17EncodeGithubComVitorsalgadoRinha2024Q1InternalMod2(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *Extrato) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjsonCb346c17DecodeGithubComVitorsalgadoRinha2024Q1InternalMod2(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *Extrato) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjsonCb346c17DecodeGithubComVitorsalgadoRinha2024Q1InternalMod2(l, v)
 }

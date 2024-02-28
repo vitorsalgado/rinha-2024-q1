@@ -17,7 +17,7 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjsonB757a988DecodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod(in *jlexer.Lexer, out *Transacao) {
+func easyjsonB757a988DecodeGithubComVitorsalgadoRinha2024Q1InternalMod(in *jlexer.Lexer, out *Transacao) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -52,7 +52,7 @@ func easyjsonB757a988DecodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod(
 		in.Consumed()
 	}
 }
-func easyjsonB757a988EncodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod(out *jwriter.Writer, in Transacao) {
+func easyjsonB757a988EncodeGithubComVitorsalgadoRinha2024Q1InternalMod(out *jwriter.Writer, in Transacao) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -77,27 +77,27 @@ func easyjsonB757a988EncodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod(
 // MarshalJSON supports json.Marshaler interface
 func (v Transacao) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonB757a988EncodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod(&w, v)
+	easyjsonB757a988EncodeGithubComVitorsalgadoRinha2024Q1InternalMod(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Transacao) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonB757a988EncodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod(w, v)
+	easyjsonB757a988EncodeGithubComVitorsalgadoRinha2024Q1InternalMod(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Transacao) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonB757a988DecodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod(&r, v)
+	easyjsonB757a988DecodeGithubComVitorsalgadoRinha2024Q1InternalMod(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Transacao) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonB757a988DecodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod(l, v)
+	easyjsonB757a988DecodeGithubComVitorsalgadoRinha2024Q1InternalMod(l, v)
 }
-func easyjsonB757a988DecodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod1(in *jlexer.Lexer, out *Resumo) {
+func easyjsonB757a988DecodeGithubComVitorsalgadoRinha2024Q1InternalMod1(in *jlexer.Lexer, out *Resumo) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -130,7 +130,7 @@ func easyjsonB757a988DecodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod1
 		in.Consumed()
 	}
 }
-func easyjsonB757a988EncodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod1(out *jwriter.Writer, in Resumo) {
+func easyjsonB757a988EncodeGithubComVitorsalgadoRinha2024Q1InternalMod1(out *jwriter.Writer, in Resumo) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -150,23 +150,23 @@ func easyjsonB757a988EncodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod1
 // MarshalJSON supports json.Marshaler interface
 func (v Resumo) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonB757a988EncodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod1(&w, v)
+	easyjsonB757a988EncodeGithubComVitorsalgadoRinha2024Q1InternalMod1(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Resumo) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonB757a988EncodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod1(w, v)
+	easyjsonB757a988EncodeGithubComVitorsalgadoRinha2024Q1InternalMod1(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Resumo) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonB757a988DecodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod1(&r, v)
+	easyjsonB757a988DecodeGithubComVitorsalgadoRinha2024Q1InternalMod1(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Resumo) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonB757a988DecodeGithubComVitorsalgadoRinhaBackend2024Q1GoInternalMod1(l, v)
+	easyjsonB757a988DecodeGithubComVitorsalgadoRinha2024Q1InternalMod1(l, v)
 }
