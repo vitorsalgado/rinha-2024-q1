@@ -89,4 +89,4 @@ jobs:
       - name: upload test results
         uses: actions/upload-pages-artifact@v3
         with: 
-          path: $RINHA_DIR/load-test/user-files/results/${{ env.GATLING_REPORT }}
+          path: ${{ env.RINHA_DIR }}/load-test/user-files/results/${{ env.GATLING_REPORT }}
