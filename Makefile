@@ -58,3 +58,14 @@ down-dev: ## stop dev env
 .PHONY: init
 init:
 	make -C tools
+
+# FINAL VERSION
+# ---
+
+.PHONY: rinha
+rinha:
+	@docker-compose -f ./docker-compose-rinha-final.yml up --build --force-recreate
+
+.PHONY: rinha-stop
+rinha-stop:
+	@docker-compose -f ./docker-compose-rinha-final.yml down --volumes --remove-orphans
