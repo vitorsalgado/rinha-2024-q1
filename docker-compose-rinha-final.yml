@@ -46,7 +46,7 @@ services:
           memory: "180MB"
 
   db:
-    image: postgres:latest
+    image: postgres:16.2
     container_name: db
     environment:
       - POSTGRES_PASSWORD=rinha

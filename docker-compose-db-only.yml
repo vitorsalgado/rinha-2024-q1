@@ -2,10 +2,10 @@ version: "3.5"
 
 services:
   db:
-    image: postgres:latest
+    image: postgres:16.2
     environment:
-      - POSTGRES_PASSWORD=123
-      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=rinha
+      - POSTGRES_USER=rinha
       - POSTGRES_DB=rinha
     ports:
       - "5432:5432"
