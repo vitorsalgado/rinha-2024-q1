@@ -46,13 +46,13 @@ static_resources:
         - endpoint:
             address:
               socket_address:
-                address: api01
-                port_value: 8080
+                address: 0.0.0.0
+                port_value: 8081
         - endpoint:
             address:
               socket_address:
-                address: api02
-                port_value: 8080
+                address: 0.0.0.0
+                port_value: 8082
 
     # setting high values to disable circuit breaker
     circuit_breakers:

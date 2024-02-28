@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	EnvAddr         = "PORT"
+	EnvAddr         = "ADDR"
 	EnvDBConnString = "DB_CONN_STRING"
 )
 
