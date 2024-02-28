@@ -7,7 +7,7 @@ services:
     container_name: api01
     hostname: api01
     environment:
-      - DB_CONN_STRING=user=rinha password=rinha dbname=rinha host=/var/run/postgresql sslmode=disable pool_min_conns=10 pool_max_conns=10
+      - DB_CONN_STRING=user=rinha password=rinha dbname=rinha host=bouncer port=6432 sslmode=disable pool_min_conns=10 pool_max_conns=10
       - GOMAXPROCS=2
     volumes:
       - pgsql_socket:/var/run/postgresql
@@ -65,9 +65,11 @@ services:
       dockerfile: Dockerfile.bouncer
     container_name: bouncer
     environment:
-      PGB_DATABASES: rinha = host=/var/run/postgresql port=5432 pool_mode=statement pool_size=20
+      PGB_DATABASES: rinha = host=db port=5432 pool_mode=statement pool_size=20
       PGB_ADMIN_USERS: rinha
       PGB_ADMIN_PASSWORDS: rinha
+    ports:
+      - "6432:6432"
     volumes:
       - pgsql_socket:/var/run/postgresql
     deploy:
