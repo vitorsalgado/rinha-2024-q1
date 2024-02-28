@@ -7,7 +7,7 @@ services:
     container_name: api01
     hostname: api01
     environment:
-      - DB_CONN_STRING=user=admin password=123 dbname=rinha host=/var/run/postgresql sslmode=disable pool_min_conns=10 pool_max_conns=50
+      - DB_CONN_STRING=user=admin password=123 dbname=rinha host=/var/run/postgresql sslmode=disable pool_min_conns=10 pool_max_conns=10
     volumes:
       - pgsql_socket:/var/run/postgresql
     depends_on:

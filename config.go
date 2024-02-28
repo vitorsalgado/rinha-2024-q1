@@ -1,15 +1,12 @@
 package main
 
 import (
-	"errors"
-	"fmt"
 	"os"
 	"time"
 )
 
 const (
-	EnvSrvAddr      = "PORT"
-	EnvSrvTimeout   = "SRV_TIMEOUT"
+	EnvAddr         = "PORT"
 	EnvDBConnString = "DB_CONN_STRING"
 )
 
@@ -21,19 +18,9 @@ type Config struct {
 
 func Parse() (Config, error) {
 	config := Config{}
-	config.Addr = envStr(EnvSrvAddr, ":8080")
-
-	srvTimeout, err := envDur(EnvSrvTimeout, 5*time.Second)
-	if err != nil {
-		return Config{}, err
-	}
-	config.SrvTimeout = srvTimeout
-
-	dbConnStr := envStr(EnvDBConnString, "")
-	if len(dbConnStr) == 0 {
-		return Config{}, errors.New("database connection string must not be empty")
-	}
-	config.DBConnString = dbConnStr
+	config.Addr = envStr(EnvAddr, ":8080")
+	config.SrvTimeout = 10 * time.Second
+	config.DBConnString = envStr(EnvDBConnString, "postgresql://admin:123@db:5432/rinha?sslmode=disable")
 
 	return config, nil
 }
@@ -45,18 +32,4 @@ func envStr(n, def string) string {
 	}
 
 	return str
-}
-
-func envDur(n string, def time.Duration) (time.Duration, error) {
-	str := os.Getenv(n)
-	if len(str) == 0 {
-		return def, nil
-	}
-
-	dur, err := time.ParseDuration(str)
-	if err != nil {
-		return def, fmt.Errorf("can't parse %s: %v", n, err)
-	}
-
-	return dur, nil
 }

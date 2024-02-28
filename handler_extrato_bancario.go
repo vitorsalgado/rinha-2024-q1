@@ -2,15 +2,34 @@ package main
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/vitorsalgado/rinha-backend-2024-q1-go/internal/mod"
 )
 
+const (
+	CmdExtratoQry = `
+(select s.saldo as valor, s.limite, '' as descricao, '' as tipo, now() as data
+from saldos s
+where s.cliente_id = $1)
+		
+union all
+		
+(select t.valor, 0, t.descricao, t.tipo, t.realizado_em
+from transacoes t
+where cliente_id = $1
+order by t.realizado_em desc
+limit 10)
+`
+)
+
 type HandlerExtrato struct {
-	pool *pgxpool.Pool
-	c    [10]mod.ExtratoTransacao
+	pool   *pgxpool.Pool
+	logger *slog.Logger
+
+	c [10]mod.ExtratoTransacao
 }
 
 func (h *HandlerExtrato) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -20,27 +39,15 @@ func (h *HandlerExtrato) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	const cmd = `
-(select s.saldo as valor, s.limite, '' as descricao, '' as tipo, now() as data
-from saldos s
-where s.cliente_id = $1)
-	
-union all
-	
-(select t.valor, 0, t.descricao, t.tipo, t.realizado_em
-from transacoes t
-where cliente_id = $1
-order by t.realizado_em desc
-limit 10)
-`
-
-	rows, err := h.pool.Query(r.Context(), cmd, clienteid)
+	rows, err := h.pool.Query(r.Context(), CmdExtratoQry, clienteid)
 	if err != nil {
 		http.Error(w, "erro ao executar operacao", http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
 
+	// moving to the first line.
+	// the first line contains balance information.
 	if !rows.Next() {
 		http.Error(w, "informacao do cliente nao encontrada", http.StatusNotFound)
 		return
@@ -54,6 +61,8 @@ limit 10)
 	}
 
 	extrato.UltimasTransacoes = h.c[:0]
+
+	// iterate the remaining entries to get the transactions.
 	for rows.Next() {
 		tr := mod.ExtratoTransacao{}
 		rows.Scan(&tr.Valor, nil, &tr.Descricao, &tr.Tipo, &tr.RealizadaEm)
@@ -62,5 +71,8 @@ limit 10)
 
 	w.Header().Add("content-type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(&extrato)
+
+	if err = json.NewEncoder(w).Encode(&extrato); err != nil {
+		h.logger.Error("extrato: erro ao serializar a resposta", slog.Any("error", err))
+	}
 }

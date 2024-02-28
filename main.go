@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -12,24 +11,18 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/joho/godotenv"
 )
 
 //go:generate ./out/easyjson internal/mod/transacao.go internal/mod/extrato_bancario.go
 
 func main() {
-	godotenv.Load()
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	conf, err := Parse()
 	if err != nil {
 		logger.Error("error parsing application config", slog.Any("error", err))
 	}
 
-	exit := make(chan os.Signal, 1)
-	signal.Notify(exit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-
-	connStr := fmt.Sprintf("user=%s password=%s dbname=%s host=%s sslmode=disable", "admin", "123", "rinha", "/var/run/postgresql")
-	poolConf, err := pgxpool.ParseConfig(connStr)
+	poolConf, err := pgxpool.ParseConfig(conf.DBConnString)
 	if err != nil {
 		logger.Error("error parsing postgresql connection string", slog.Any("error", err))
 		os.Exit(1)
@@ -45,11 +38,13 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte("pong")) })
-	mux.Handle("POST /clientes/{id}/transacoes", &HandlerTransacao{pool: pool})
-	mux.Handle("GET /clientes/{id}/extrato", &HandlerExtrato{pool: pool})
+	mux.Handle("POST /clientes/{id}/transacoes", &HandlerTransacao{pool: pool, logger: logger})
+	mux.Handle("GET /clientes/{id}/extrato", &HandlerExtrato{pool: pool, logger: logger})
 
 	server := &http.Server{Handler: mux, Addr: conf.Addr, ReadTimeout: conf.SrvTimeout, WriteTimeout: conf.SrvTimeout}
 
+	exit := make(chan os.Signal, 1)
+	signal.Notify(exit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		<-exit
 
@@ -58,14 +53,15 @@ func main() {
 
 		err := server.Shutdown(c)
 		if err != nil {
-			logger.Error("error during shutdown", slog.String("error", err.Error()))
-			return
+			logger.Error("error during shutdown", slog.Any("error", err))
 		}
+
+		pool.Close()
 	}()
 
 	logger.Info("server will listen to addr: " + conf.Addr)
 
 	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		logger.Error("shutdown", slog.String("error", err.Error()))
+		logger.Error("shutdown", slog.Any("error", err))
 	}
 }

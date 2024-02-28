@@ -2,12 +2,14 @@ package main
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/vitorsalgado/rinha-backend-2024-q1-go/internal/mod"
 )
 
+// FnReturnCode represents the return code from the database.
 type FnReturnCode int
 
 const (
@@ -16,8 +18,18 @@ const (
 	FnReturnCodeCustomerNotFound
 )
 
+const (
+	TrTypeDebit  = "d"
+	TrTypeCredit = "c"
+)
+
+const (
+	CmdFnCrebito = "SELECT * FROM fn_crebito($1, $2, $3, $4)"
+)
+
 type HandlerTransacao struct {
-	pool *pgxpool.Pool
+	pool   *pgxpool.Pool
+	logger *slog.Logger
 }
 
 func (h *HandlerTransacao) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -38,19 +50,23 @@ func (h *HandlerTransacao) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	row := h.pool.QueryRow(r.Context(), "SELECT * FROM fn_crebito($1, $2, $3, $4)", clienteid, tr.Descricao, tr.Tipo, tr.Valor)
-	code := FnReturnCode(0)
+	row := h.pool.QueryRow(r.Context(), CmdFnCrebito, clienteid, tr.Descricao, tr.Tipo, tr.Valor)
+	fnReturnCode := FnReturnCode(0)
 	result := mod.Resumo{}
-	if err := row.Scan(&result.Limite, &result.Saldo, &code); err != nil {
+	if err := row.Scan(&result.Limite, &result.Saldo, &fnReturnCode); err != nil {
 		http.Error(w, "erro ao executar operacao", http.StatusInternalServerError)
 		return
 	}
 
-	switch code {
+	switch fnReturnCode {
 	case FnReturnCodeSuccess:
 		w.Header().Add("content-type", "application/json; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(&result)
+
+		if err = json.NewEncoder(w).Encode(&result); err != nil {
+			h.logger.Error("transacao: erro ao serializar a resposta", slog.Any("error", err))
+		}
+
 	case FnReturnCodeInsufficientBalance:
 		http.Error(w, "saldo insuficiente", http.StatusUnprocessableEntity)
 	case FnReturnCodeCustomerNotFound:
@@ -61,8 +77,8 @@ func (h *HandlerTransacao) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HandlerTransacao) validate(tr *mod.Transacao, w http.ResponseWriter) bool {
-	if len(tr.Descricao) == 0 ||
-		len(tr.Descricao) > 10 {
+	sizedesc := len(tr.Descricao)
+	if sizedesc == 0 || sizedesc > 10 {
 		http.Error(w, "descricao pode conter ate 10 caracteres", http.StatusUnprocessableEntity)
 		return false
 	}
@@ -72,7 +88,7 @@ func (h *HandlerTransacao) validate(tr *mod.Transacao, w http.ResponseWriter) bo
 		return false
 	}
 
-	if !(tr.Tipo == "c" || tr.Tipo == "d") {
+	if tr.Tipo != TrTypeCredit && tr.Tipo != TrTypeDebit {
 		http.Error(w, "tipo da transacao precisar ser: c ou d", http.StatusUnprocessableEntity)
 		return false
 	}
