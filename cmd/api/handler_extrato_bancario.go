@@ -4,20 +4,39 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/vitorsalgado/rinha-2024-q1/internal/mod"
 )
+
+type Extrato struct {
+	Saldo             ExtratoSaldo       `json:"saldo"`
+	UltimasTransacoes []ExtratoTransacao `json:"ultimas_transacoes"`
+}
+
+type ExtratoSaldo struct {
+	Total       int       `json:"total"`
+	DataExtrato time.Time `json:"data_extrato"`
+	Limite      int       `json:"limite"`
+}
+
+type ExtratoTransacao struct {
+	Tipo        string    `json:"tipo"`
+	Valor       int       `json:"valor"`
+	Descricao   string    `json:"descricao"`
+	RealizadaEm time.Time `json:"realizada_em"`
+}
 
 const (
 	CmdExtratoQry = `
-(select s.saldo as valor, s.limite, '' as descricao, '' as tipo, now() as data
+(select s.saldo as valor, '' as descricao, '' as tipo, now() as data
 from saldos s
 where s.cliente_id = $1)
 		
 union all
 		
-(select t.valor, 0, t.descricao, t.tipo, t.realizado_em
+(select t.valor, t.descricao, t.tipo, t.realizado_em
 from transacoes t
 where cliente_id = $1
 order by t.realizado_em desc
@@ -28,14 +47,24 @@ limit 10)
 type HandlerExtrato struct {
 	pool   *pgxpool.Pool
 	logger *slog.Logger
-
-	c [10]mod.ExtratoTransacao
 }
 
 func (h *HandlerExtrato) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	clienteid := r.PathValue("id")
-	if len(clienteid) == 0 {
+	pid := r.PathValue("id")
+	if len(pid) == 0 {
 		http.Error(w, "identificador de cliente nao informado", http.StatusUnprocessableEntity)
+		return
+	}
+
+	clienteid, err := strconv.Atoi(pid)
+	if err != nil {
+		http.Error(w, "identificador de cliente invalido", http.StatusUnprocessableEntity)
+		return
+	}
+
+	limite, ok := Clientes[clienteid]
+	if !ok {
+		http.Error(w, "cliente nao encontrado", http.StatusNotFound)
 		return
 	}
 
@@ -53,19 +82,21 @@ func (h *HandlerExtrato) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	extrato := mod.Extrato{}
-	err = rows.Scan(&extrato.Saldo.Total, &extrato.Saldo.Limite, nil, nil, &extrato.Saldo.DataExtrato)
+	extrato := Extrato{}
+	extrato.Saldo.Limite = limite
+
+	err = rows.Scan(&extrato.Saldo.Total, nil, nil, &extrato.Saldo.DataExtrato)
 	if err != nil {
 		http.Error(w, "erro ao obter informacao de saldo", http.StatusInternalServerError)
 		return
 	}
 
-	extrato.UltimasTransacoes = h.c[:0]
+	extrato.UltimasTransacoes = make([]ExtratoTransacao, 0, 10)
 
 	// iterate the remaining entries to get the transactions.
 	for rows.Next() {
-		tr := mod.ExtratoTransacao{}
-		rows.Scan(&tr.Valor, nil, &tr.Descricao, &tr.Tipo, &tr.RealizadaEm)
+		tr := ExtratoTransacao{}
+		rows.Scan(&tr.Valor, &tr.Descricao, &tr.Tipo, &tr.RealizadaEm)
 		extrato.UltimasTransacoes = append(extrato.UltimasTransacoes, tr)
 	}
 

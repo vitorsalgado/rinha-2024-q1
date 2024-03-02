@@ -43,7 +43,7 @@ func main() {
 	mux.Handle("POST /clientes/{id}/transacoes", &HandlerTransacao{pool: pool, logger: logger})
 	mux.Handle("GET /clientes/{id}/extrato", &HandlerExtrato{pool: pool, logger: logger})
 
-	server := &http.Server{Handler: mux, Addr: conf.Addr, ReadTimeout: conf.SrvTimeout, WriteTimeout: conf.SrvTimeout}
+	server := &http.Server{Handler: mux, Addr: conf.Addr}
 
 	exit := make(chan os.Signal, 1)
 	signal.Notify(exit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)

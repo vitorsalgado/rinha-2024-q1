@@ -16,7 +16,7 @@ services:
       resources:
         limits:
           cpus: "0.2"
-          memory: "75MB"
+          memory: "50MB"
 
   api02:
     <<: *api
@@ -35,14 +35,15 @@ services:
       - "9999"
     volumes:
       - ./conf/envoy.yaml:/etc/envoy/envoy.yaml:ro
+    command: /usr/local/bin/envoy -c /etc/envoy/envoy.yaml --concurrency 1
     depends_on:
       - api01
       - api02
     deploy:
       resources:
         limits:
-          cpus: "0.4"
-          memory: "180MB"
+          cpus: "0.3"
+          memory: "100MB"
 
   db:
     image: postgres:16.2
@@ -56,12 +57,12 @@ services:
       - "5432"
     volumes:
       - ./conf/script.sql:/docker-entrypoint-initdb.d/script.sql
-      - ./conf/postgresql.conf:/docker-entrypoint-initdb.d/postgresql.conf
+    command: postgres -c max_connections=300 -c checkpoint_timeout=600 -c synchronous_commit=off -c fsync=off -c full_page_writes=off -c work_mem=16MB -c shared_buffers=75MB -c maintenance_work_mem=25MB -c effective_cache_size=75MB -c max_worker_processes=1 -c max_parallel_workers=1 -c max_parallel_maintenance_workers=1 -c max_parallel_workers_per_gather=1
     deploy:
       resources:
         limits:
-          cpus: "0.5"
-          memory: "200MB"
+          cpus: "0.6"
+          memory: "330MB"
 
   bouncer:
     build:

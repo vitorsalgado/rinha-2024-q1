@@ -27,7 +27,7 @@ rm: ## remove everything
 
 .PHONY: build
 build: ## build and generate api binary
-	@go build -o out/api ./*.go
+	@go build -o out/api ./cmd/api/**.go
 
 .PHONY: deps
 deps: ## download dependencies
@@ -35,7 +35,7 @@ deps: ## download dependencies
 
 .PHONY: run
 run: ## run api locally
-	@go run ./...
+	@go run ./cmd/api/...
 
 .PHONY: prepare
 prepare:
@@ -54,18 +54,3 @@ up-dev: ## run dev env
 .PHONY: down-dev
 down-dev: ## stop dev env
 	@docker-compose -f ./docker-compose-db-only.yml down --volumes --remove-orphans
-
-.PHONY: init
-init:
-	make -C tools
-
-# FINAL VERSION
-# ---
-
-.PHONY: rinha
-rinha:
-	@docker-compose -f ./docker-compose-rinha-final.yml up --build --force-recreate
-
-.PHONY: rinha-stop
-rinha-stop:
-	@docker-compose -f ./docker-compose-rinha-final.yml down --volumes --remove-orphans

@@ -22,7 +22,7 @@ CREATE INDEX idx_transacaos_cliente_id ON transacoes (cliente_id, realizado_em D
 -- functions
 
 CREATE OR REPLACE FUNCTION fn_crebito(fn_cliente_id INT, fn_descricao VARCHAR(10), fn_tipo CHAR(1), fn_valor INT)
-RETURNS TABLE (fn_res_limite INT, fn_res_saldo_final INT, fn_res_code INT)
+RETURNS TABLE (fn_res_saldo_final INT, fn_res_code INT)
 AS $$
 DECLARE v_saldo INT; v_limite INT;
 BEGIN
@@ -31,7 +31,7 @@ BEGIN
     SELECT limite, saldo INTO v_limite, v_saldo FROM saldos WHERE cliente_id = fn_cliente_id;
     IF NOT FOUND THEN
         RETURN QUERY
-            SELECT 0, 0, 3;
+            SELECT 0, 3;
     END IF;
 
     IF fn_tipo = 'c' THEN 
@@ -42,7 +42,7 @@ BEGIN
             UPDATE saldos
             SET saldo = saldo + fn_valor
             WHERE cliente_id = fn_cliente_id
-            RETURNING limite, saldo, 1;
+            RETURNING saldo, 1;
     ELSE
         IF v_saldo - fn_valor >= v_limite * -1 THEN 
             INSERT INTO transacoes (cliente_id, descricao, tipo, valor) 
@@ -52,10 +52,10 @@ BEGIN
                 UPDATE saldos
                 SET saldo = saldo - fn_valor
                 WHERE cliente_id = fn_cliente_id
-                RETURNING limite, saldo, 1;
+                RETURNING saldo, 1;
         ELSE
             RETURN QUERY
-                SELECT v_limite, v_saldo, 2;
+                SELECT v_saldo, 2;
         END IF;
     END IF;
 END;

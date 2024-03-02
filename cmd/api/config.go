@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-	"time"
 )
 
 const (
@@ -12,14 +11,12 @@ const (
 
 type Config struct {
 	Addr         string
-	SrvTimeout   time.Duration
 	DBConnString string
 }
 
 func Parse() (Config, error) {
 	config := Config{}
 	config.Addr = envStr(EnvAddr, ":8080")
-	config.SrvTimeout = 10 * time.Second
 	config.DBConnString = envStr(EnvDBConnString, "postgresql://rinha:rinha@db:5432/rinha?sslmode=disable")
 
 	return config, nil
