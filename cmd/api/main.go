@@ -15,15 +15,9 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-//go:generate ./out/easyjson internal/mod/transacao.go internal/mod/extrato_bancario.go
-
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	conf, err := Parse()
-	if err != nil {
-		logger.Error("error parsing application config", slog.Any("error", err))
-	}
-
+	conf := newConfig()
 	poolConf, err := pgxpool.ParseConfig(conf.DBConnString)
 	if err != nil {
 		logger.Error("error parsing postgresql connection string", slog.Any("error", err))

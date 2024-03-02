@@ -14,12 +14,12 @@ type Config struct {
 	DBConnString string
 }
 
-func Parse() (Config, error) {
+func newConfig() Config {
 	config := Config{}
 	config.Addr = envStr(EnvAddr, ":8080")
 	config.DBConnString = envStr(EnvDBConnString, "postgresql://rinha:rinha@db:5432/rinha?sslmode=disable")
 
-	return config, nil
+	return config
 }
 
 func envStr(n, def string) string {
