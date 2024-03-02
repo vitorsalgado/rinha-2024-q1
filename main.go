@@ -10,6 +10,8 @@ import (
 	"syscall"
 	"time"
 
+	_ "go.uber.org/automaxprocs"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
