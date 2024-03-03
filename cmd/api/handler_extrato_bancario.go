@@ -13,6 +13,8 @@ import (
 type Extrato struct {
 	Saldo             ExtratoSaldo       `json:"saldo"`
 	UltimasTransacoes []ExtratoTransacao `json:"ultimas_transacoes"`
+
+	_c [10]ExtratoTransacao
 }
 
 type ExtratoSaldo struct {
@@ -91,7 +93,7 @@ func (h *HandlerExtrato) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	extrato.UltimasTransacoes = make([]ExtratoTransacao, 0, 10)
+	extrato.UltimasTransacoes = extrato._c[:0]
 
 	// iterate the remaining entries to get the transactions.
 	for rows.Next() {
