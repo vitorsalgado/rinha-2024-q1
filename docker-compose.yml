@@ -62,6 +62,8 @@ services:
     volumes:
       - ./conf/script.sql:/docker-entrypoint-initdb.d/script.sql
       - ./conf/postgresql.conf:/etc/postgresql/postgresql.conf
+    tmpfs:
+      - pgdata:/var/lib/postgresql/data
     command: postgres -c config_file=/etc/postgresql/postgresql.conf
     deploy:
       resources:
@@ -88,3 +90,6 @@ services:
         limits:
           cpus: "0.2"
           memory: "20MB"
+
+volumes:
+  pgdata:
