@@ -40,7 +40,7 @@ union all
 		
 (select t.valor, t.descricao, t.tipo, t.realizado_em
 from transacoes t
-where cliente_id = $1
+where t.cliente_id = $1
 order by t.id desc
 limit 10)
 `
