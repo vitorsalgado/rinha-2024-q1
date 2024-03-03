@@ -28,12 +28,6 @@ DECLARE v_saldo INT; v_limite INT;
 BEGIN
     PERFORM pg_advisory_xact_lock(fn_cliente_id);
 	
-    SELECT limite, saldo INTO v_limite, v_saldo FROM saldos WHERE cliente_id = fn_cliente_id;
-    IF NOT FOUND THEN
-        RETURN QUERY
-            SELECT 0, 3;
-    END IF;
-
     IF fn_tipo = 'c' THEN 
         INSERT INTO transacoes (cliente_id, descricao, tipo, valor) 
             VALUES(fn_cliente_id, fn_descricao, 'c', fn_valor);
@@ -44,6 +38,12 @@ BEGIN
             WHERE cliente_id = fn_cliente_id
             RETURNING saldo, 1;
     ELSE
+        SELECT limite, saldo INTO v_limite, v_saldo FROM saldos WHERE cliente_id = fn_cliente_id;
+        IF NOT FOUND THEN
+            RETURN QUERY
+                SELECT 0, 3;
+        END IF;
+
         IF v_saldo - fn_valor >= v_limite * -1 THEN 
             INSERT INTO transacoes (cliente_id, descricao, tipo, valor) 
             VALUES(fn_cliente_id, fn_descricao, fn_tipo, fn_valor);
