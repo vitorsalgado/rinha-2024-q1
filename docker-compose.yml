@@ -10,6 +10,8 @@ services:
     environment:
       - DB_CONN_STRING=user=rinha password=rinha dbname=rinha host=0.0.0.0 port=6432 sslmode=disable pool_min_conns=5 pool_max_conns=5
       - ADDR=:8081
+      - GOGC=200
+      - GOMEMLIMIT=45MiB
     depends_on:
       - db
     deploy:
@@ -26,6 +28,8 @@ services:
     environment:
       - DB_CONN_STRING=user=rinha password=rinha dbname=rinha host=0.0.0.0 port=6432 sslmode=disable pool_min_conns=5 pool_max_conns=5
       - ADDR=:8082
+      - GOGC=200
+      - GOMEMLIMIT=45MiB
 
   envoy:
     image: envoyproxy/envoy:v1.29-latest
