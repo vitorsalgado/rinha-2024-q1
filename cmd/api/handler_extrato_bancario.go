@@ -30,7 +30,7 @@ type ExtratoTransacao struct {
 
 const (
 	CmdExtratoQry = `
-(select s.saldo as valor, '' as descricao, '' as tipo, now() as data
+(select s.saldo as v, '' as d, '' as t, now() as d
 from saldos s
 where s.cliente_id = $1)
 		
@@ -39,7 +39,7 @@ union all
 (select t.valor, t.descricao, t.tipo, t.realizado_em
 from transacoes t
 where cliente_id = $1
-order by t.realizado_em desc
+order by t.id desc
 limit 10)
 `
 )

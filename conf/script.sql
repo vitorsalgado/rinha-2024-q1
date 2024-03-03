@@ -1,3 +1,7 @@
+-- general
+
+SET TIME ZONE 'UTC';
+
 -- tables
 
 CREATE UNLOGGED TABLE saldos (
@@ -12,12 +16,12 @@ CREATE UNLOGGED TABLE transacoes (
     descricao VARCHAR(10) NOT NULL,
     tipo CHAR(1) NOT NULL,
     valor INT NOT NULL,
-    realizado_em TIMESTAMP NOT NULL DEFAULT now()
+    realizado_em TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- indexes
 
-CREATE INDEX idx_transacaos_cliente_id ON transacoes (cliente_id, realizado_em DESC);
+CREATE INDEX idx_transacaos_cliente_id ON transacoes (cliente_id, id DESC);
 
 -- functions
 
