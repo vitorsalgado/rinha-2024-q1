@@ -83,7 +83,7 @@ func (h *HandlerTransacao) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	switch fnReturnCode {
 	case FnReturnCodeSuccess:
-		w.Header().Add("content-type", "application/json; charset=utf-8")
+		w.Header()[HeaderContentType] = []string{MimeApplicationJSON}
 		w.WriteHeader(http.StatusOK)
 
 		if err = json.NewEncoder(w).Encode(&result); err != nil {

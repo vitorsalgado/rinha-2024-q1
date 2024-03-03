@@ -100,7 +100,7 @@ func (h *HandlerExtrato) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		extrato.UltimasTransacoes = append(extrato.UltimasTransacoes, tr)
 	}
 
-	w.Header().Add("content-type", "application/json; charset=utf-8")
+	w.Header()[HeaderContentType] = []string{MimeApplicationJSON}
 	w.WriteHeader(http.StatusOK)
 
 	if err = json.NewEncoder(w).Encode(&extrato); err != nil {
