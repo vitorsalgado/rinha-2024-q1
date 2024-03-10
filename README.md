@@ -12,14 +12,19 @@ Os resultados dos testes são publicados automaticamente neste **[site](https://
 
 ## Sobre
 
-Alguns pontos sobre o projeto:  
+A idéia era criar um projeto bem simples, com o mínimo possível de libs e frameworks e que também fosse fácil de replicar em outras linguagens.  
+Em relação a **performance**, aqui algumas idéias que guiaram o projeto, mais ou menos em uma ordem de prioridade:  
 
-- api com std lib;
-- as operações de débito, crédito e extrato são feitas com apenas uma chamada ao banco, reduzindo o número de idas e vindas ao mesmo. No caso das operações de débito e crédito, foi utilizada uma function no Postgres que concentra a regra de negócio.
-- PGO (Performance Guided Optimization) para gerar um binário mais eficiente.
-- uso do componente PgBouncer para uma gestão mais eficiente de conexões com o banco.
-- _Envoy_ como load balancer.
-- GOMAXPROCS=1 (definido pela lib _automaxprocs_).
+- menos **round trips** possíveis ao banco de dados. para isso, usei uma **function** no Postgres para as transações e uma query única para o obter o extrato bancário.
+
+- gestão eficiente de conexões com o banco. esse ponto é um complemente do anterior, conexões com o banco de dados são "caras" e aqui demorei para achar o setup ideal. desde o início a solução contava com um **pool** de conexões e no começo esse pool girou em torno de ~100 - ~300 de máx. conexões. depois de vários experimentos, encontrei uma ferramente interessante para o pool de conexões, **PgBouncer**. com o PgBouncer integrado, o setup ideal acabou sendo: __pool=5__ nas apis e __pool=20__ no PgBouncer, um número muito menor do que os experimentos inicias sem esse componente.
+
+- experimentei usar o **nginx** como load balancer inicialmente, mas após alguns experimentos com **envoy**, acabei optando pelo último.
+
+- **threads**: dadas as limitações do ambiente em relação a CPU e memória, experimentei diferentes setups de threads para as aplicações. no final, os testes se sairam melhor configurando tudo com o mínimo de processos possível. as apis definem **GOMAXPROCS=1**. no final, usei a lib _automaxprocs_ para a definição adequada e automática da variável GOMAXPROCS para evitar surpresas no ambiente de testes da rinha. 
+o **envoy** também foi configurado dessa forma. no comando de start, é passado o parâmetro __--concurrency=1__.
+
+- com a solução final pronta, utilizei um recurso chamado **PGO (Performance Guided Optimization)** para gerar binários mais eficientes das aplicações em Go. basicamente rodei um profiling das apis e do load balancer também, gerando no final um arquivo **default.pgo**. esse arquivo é então submetido ao **build** posteriormente.
 
 ## Executando
 
